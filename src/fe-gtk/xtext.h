@@ -95,11 +95,6 @@ struct _GtkXText
 
 	int pixel_offset;					/* amount of pixels the top line is chopped by */
 
-	int last_win_x;
-	int last_win_y;
-	int last_win_h;
-	int last_win_w;
-
 	GdkGC *bgc;						  /* backing pixmap */
 	GdkGC *fgc;						  /* text foreground color */
 	GdkGC *light_gc;				  /* sep bar */
