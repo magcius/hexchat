@@ -32,7 +32,6 @@
    time, so we can't use this hack yet. */
 #undef ITALIC							/* support Italic? */
 #define GDK_MULTIHEAD_SAFE
-#define USE_DB							/* double buffer */
 
 #define MARGIN 2						/* dont touch. */
 #define REFRESH_TIMEOUT 20
@@ -2553,21 +2552,6 @@ gtk_xtext_render_flush (GtkXText * xtext, int x, int y, unsigned char *str,
 #endif
 	}
 
-#ifdef USE_DB
-	pix = gdk_pixmap_new (xtext->draw_buf, str_width, xtext->fontsize, xtext->depth);
-	if (pix)
-	{
-		dest_x = x;
-		dest_y = y - xtext->font->ascent;
-
-		gdk_gc_set_ts_origin (xtext->bgc, xtext->ts_x - x, xtext->ts_y - dest_y);
-
-		x = 0;
-		y = xtext->font->ascent;
-		xtext->draw_buf = pix;
-	}
-#endif
-
 	dofill = TRUE;
 
 	/* backcolor is always handled by XDrawImageString */
@@ -2580,38 +2564,6 @@ gtk_xtext_render_flush (GtkXText * xtext, int x, int y, unsigned char *str,
 	}
 
 	backend_draw_text (xtext, dofill, gc, x, y, str, len, str_width, is_mb);
-
-#ifdef USE_DB
-	if (pix)
-	{
-		GdkRectangle clip;
-		GdkRectangle dest;
-
-		gdk_gc_set_ts_origin (xtext->bgc, xtext->ts_x, xtext->ts_y);
-		xtext->draw_buf = GTK_WIDGET (xtext)->window;
-#if 0
-		gdk_draw_drawable (xtext->draw_buf, xtext->bgc, pix, 0, 0, dest_x,
-								 dest_y, str_width, xtext->fontsize);
-#else
-		clip.x = xtext->clip_x;
-		clip.y = xtext->clip_y;
-		clip.width = xtext->clip_x2 - xtext->clip_x;
-		clip.height = xtext->clip_y2 - xtext->clip_y;
-
-		dest.x = dest_x;
-		dest.y = dest_y;
-		dest.width = str_width;
-		dest.height = xtext->fontsize;
-
-		if (gdk_rectangle_intersect (&clip, &dest, &dest))
-			/* dump the DB to window, but only within the clip_x/x2/y/y2 */
-			gdk_draw_drawable (xtext->draw_buf, xtext->bgc, pix,
-									 dest.x - dest_x, dest.y - dest_y,
-									 dest.x, dest.y, dest.width, dest.height);
-#endif
-		g_object_unref (pix);
-	}
-#endif
 
 	if (xtext->underline)
 	{
@@ -3875,12 +3827,7 @@ gtk_xtext_render_page (GtkXText * xtext)
 	overlap = xtext->buffer->last_pixel_pos - pos;
 	xtext->buffer->last_pixel_pos = pos;
 
-#ifdef USE_DB
-	if (!xtext->pixmap && abs (overlap) < height)
-#else
-	/* dont scroll PageUp/Down without a DB, it looks ugly */
-	if (!xtext->pixmap && abs (overlap) < height - (3*xtext->fontsize))
-#endif
+	if (!xtext->pixmap && abs (overlap))
 	{
 		/* so the obscured regions are exposed */
 		gdk_gc_set_exposures (xtext->fgc, TRUE);
