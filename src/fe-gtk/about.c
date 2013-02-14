@@ -33,10 +33,6 @@
 #include <gtk/gtkstock.h>
 #include <gtk/gtkwindow.h>
 
-#ifdef USE_XLIB
-#include <gdk/gdkx.h>
-#endif
-
 #include "../common/hexchat.h"
 #include "../common/util.h"
 #include "../common/hexchatc.h"
