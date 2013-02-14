@@ -49,7 +49,6 @@ AH_VERBATIM([USE_IPV6],[#undef USE_IPV6])
 AH_VERBATIM([USE_MMX],[#undef USE_MMX])
 AH_VERBATIM([USE_OPENSSL],[#undef USE_OPENSSL])
 AH_VERBATIM([USE_PLUGIN],[#undef USE_PLUGIN])
-AH_VERBATIM([USE_XFT],[#undef USE_XFT])
 AH_VERBATIM([USE_XLIB],[#undef USE_XLIB])
 AH_VERBATIM([USE_SIGACTION],[#undef USE_SIGACTION])
 AH_VERBATIM([USING_FREEBSD],[#undef USING_FREEBSD])
@@ -88,10 +87,6 @@ AC_ARG_ENABLE(socks,
 AC_ARG_ENABLE(ipv6,
 	[AS_HELP_STRING([--disable-ipv6],[disable IPv6])],
         ipv6=$enableval, ipv6=yes)
-
-AC_ARG_ENABLE(xft,
-	[AS_HELP_STRING([--enable-xft],[enable use of Xft directly (default: no)])],
-        xft=$enableval, xft=no)
 
 AC_ARG_ENABLE(openssl,
 	[AS_HELP_STRING([--enable-openssl[=PATH]],[enable use of openSSL])],
@@ -240,27 +235,6 @@ gnome=no
 
 # GConf
 AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
-
-dnl *********************************************************************
-dnl ** XFT **************************************************************
-dnl *********************************************************************
-
-if test "$xft" = yes; then
-	AC_PATH_PROG(pkgconfigpath, pkg-config)
-	if $pkgconfigpath xft --exists; then
-		GUI_CFLAGS="$GUI_CFLAGS `$pkgconfigpath xft --cflags`"
-		GUI_LIBS="$GUI_LIBS `$pkgconfigpath xft --libs`"
-	else
-		xft=no
-		oldCPPFLAGS=$CPPFLAGS
-		CPPFLAGS="$CPPFLAGS $GTK_CFLAGS"
-		AC_CHECK_HEADERS(X11/Xft/Xft.h, xft=yes)
-		CPPFLAGS=$oldCPPFLAGS
-	fi
-	if test "$xft" = yes; then
-		AC_DEFINE(USE_XFT)
-	fi
-fi
 
 dnl *********************************************************************
 dnl ** XLIB *************************************************************
@@ -981,11 +955,6 @@ echo Text interface ........ : $textfe
 echo
 echo MMX tinting ........... : $mmx
 echo XShm tinting .......... : $shm
-if test "$xft" = no; then
-  echo Text backend .......... : Pango
-else
-  echo Text backend .......... : Xft
-fi
 echo OpenSSL support ....... : $openssl
 echo D-Bus support ......... : $dbus
 echo libnotify support ..... : $libnotify
